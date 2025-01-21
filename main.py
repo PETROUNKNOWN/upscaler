@@ -62,12 +62,13 @@ class Upscaler:
             self.log_to_console(f"Note: Model File Name: <{modelFileEntry}>")
             self.log_to_console(f"Note: Image File Name: <{imageFileEntry}>")
             self.log_to_console(f"Note: Upscale Factor: <{upscaleFactorEntry}>")
-            self.runUpscale
-            self.log_to_console("Note: Model has started running.")
+            self.runUpscale()
+            
         except Exception as e:
             self.log_to_console(f"Error: An unexpected error occured: {e}")
 
     def runUpscale(self):
+        self.log_to_console("Note: Model has started running.")
         model_path = os.path.join(os.path.dirname(__file__), str(self.modelFileEntry.get()))
         state_dict=torch.load(model_path, map_location=torch.device("cpu"))["params_ema"]
         model=RRDBNet(num_in_ch=3, num_out_ch=3, num_feat=64, num_block=23, num_grow_ch=32, scale=8)
@@ -89,6 +90,7 @@ class Upscaler:
         myOutput=os.path.join(os.path.dirname(__file__), 'output.png')
         output_img = Image.fromarray(output)
         output_img.save(myOutput)
+        self.log_to_console("Note: Model has completed running.")
 
 
 
