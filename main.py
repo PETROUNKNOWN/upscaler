@@ -1,40 +1,103 @@
 import warnings
 import os
-
-warnings.filterwarnings("ignore")
-
+import customtkinter as ctk
 import torch
 import numpy as np
 from PIL import Image
 from basicsr.archs.rrdbnet_arch import RRDBNet
 from realesrgan import RealESRGANer
+warnings.filterwarnings("ignore")
 
-# model_path='RealESRGAN_x4plus.pth'
-model_path = os.path.join(os.path.dirname(__file__), 'RealESRGAN_x4plus.pth')
+class Upscaler:
+    def __init__(self, root):
+        self.root=root
+        self.root.title("pyUpscaler")
+        self.root.geometry("+-5+0")
+        self.root.resizable(0,0)
+        self.root.columnconfigure(0,weight=1)
+        self.root.rowconfigure(0,weight=1)
 
-state_dict=torch.load(model_path, map_location=torch.device("cpu"))["params_ema"]
+        main_frame=ctk.CTkFrame(root,fg_color="#101010")
+        main_frame.grid(row=0,column=0,sticky="nsew")
+        main_frame.columnconfigure(0,weight=1)
+        main_frame.columnconfigure(1,weight=1)
 
-model=RRDBNet(num_in_ch=3, num_out_ch=3, num_feat=64, num_block=23, num_grow_ch=32, scale=8)
-model.load_state_dict(state_dict, strict=True)
+        self.modelFileEntry=ctk.CTkEntry(main_frame,width=500,height=40,placeholder_text="Model File Name",fg_color="#101010",border_color="#ff0000",border_width=1)
+        self.modelFileEntry.grid(row=0,column=0,columnspan=2,sticky="nsew",pady=(10,10),padx=(10,10))
 
-upsampler=RealESRGANer(
-    scale=3,
-    model_path=model_path,
-    model=model,
-    tile=0,
-    pre_pad=0,
-    half=False
-)
+        self.imageFileEntry=ctk.CTkEntry(main_frame,width=500,height=40,placeholder_text="Image File Name",fg_color="#101010",border_color="#ff0000",border_width=1)
+        self.imageFileEntry.grid(row=1,column=0,columnspan=2,sticky="nsew",pady=(0,10),padx=(10,10))
 
-myImage=os.path.join(os.path.dirname(__file__), 'image.jpg')
-img = Image.open(myImage).convert("RGB")
-img = np.array(img)
+        upscaleLabel=ctk.CTkLabel(main_frame,text="Upscale Value")
+        upscaleLabel.grid(row=2,column=0,sticky="nsw",pady=(0,10),padx=(10,10))
+        upscaleframe=ctk.CTkFrame(main_frame,fg_color="#101010",border_color="#ff0000",border_width=1)
+        upscaleframe.grid(row=2,column=1,sticky="nsew",pady=(0,10),padx=(10,10))
+        upscaleframe.columnconfigure(0,weight=1)
+        upscaleframe.rowconfigure(0,weight=1)
+        self.upscaleFactorEntry = ctk.CTkOptionMenu(upscaleframe,width=400,values=["1","2","3","4","5","6","7","8","9","10","12","14","16","18","20"],button_color="#101010",fg_color="#101010",button_hover_color="#990000")
+        self.upscaleFactorEntry.grid(row=0,column=0,sticky="nsew",pady=3,padx=3)
 
-output, _ = upsampler.enhance(img, outscale=1)
+        self.button=ctk.CTkButton(main_frame,width=130,height=40,text="Run Model",command=self.validateEntry,fg_color="#101010",border_color="#ff0000",border_width=1,hover_color="#990000")
+        self.button.grid(row=3,column=0,columnspan=2,sticky="nsew",pady=(0,10),padx=(10,10))
 
-myOutput=os.path.join(os.path.dirname(__file__), 'output.png')
-output_img = Image.fromarray(output)
-output_img.save(myOutput)
+        self.console=ctk.CTkTextbox(main_frame,height=300,wrap="word",fg_color="#101010",border_color="#ff0000",border_width=1)
+        self.console.grid(row=4,column=0,columnspan=2,sticky="nsew",pady=(0,10),padx=(10,10))
+
+    def log_to_console(self,message):
+        self.console.insert("end",f"{message}\n")
+        self.console.see("end")
+
+    def validateEntry(self):
+        modelFileEntry=str(self.modelFileEntry.get())
+        imageFileEntry=str(self.imageFileEntry.get())
+        upscaleFactorEntry=int(self.upscaleFactorEntry.get())
+        # print(modelFileEntry)
+        # print(imageFileEntry)
+        # print(upscaleFactorEntry)
+        if not modelFileEntry or not imageFileEntry or not upscaleFactorEntry:
+            self.log_to_console("Error: Please fill in all entry fields.")
+            return
+        
+        try:
+            self.log_to_console(f"Model File Name: <{modelFileEntry}>")
+            self.log_to_console(f"Image File Name: <{imageFileEntry}>")
+            self.log_to_console(f"Upscale Factor: <{upscaleFactorEntry}>")
+            self.runUpscale
+            self.log_to_console("Note: Model has started running.")
+        except Exception as e:
+            self.log_to_console(f"Error: An unexpected error occured: {e}")
+
+    def runUpscale(self):
+        model_path = os.path.join(os.path.dirname(__file__), str(self.modelFileEntry.get()))
+        state_dict=torch.load(model_path, map_location=torch.device("cpu"))["params_ema"]
+        model=RRDBNet(num_in_ch=3, num_out_ch=3, num_feat=64, num_block=23, num_grow_ch=32, scale=8)
+        model.load_state_dict(state_dict, strict=True)
+        upsampler=RealESRGANer(
+            scale=3,
+            model_path=model_path,
+            model=model,
+            tile=0,
+            pre_pad=0,
+            half=False
+        )
+        myImage=os.path.join(os.path.dirname(__file__), str(self.imageFileEntry.get()))
+        img = Image.open(myImage).convert("RGB")
+        img = np.array(img)
+
+        output, _ = upsampler.enhance(img, outscale=int(self.upscaleFactorEntry.get()))
+
+        myOutput=os.path.join(os.path.dirname(__file__), 'output.png')
+        output_img = Image.fromarray(output)
+        output_img.save(myOutput)
+
+
+
+if __name__ == "__main__":
+    ctk.set_appearance_mode("System")
+    app_root=ctk.CTk()
+    app=Upscaler(app_root)
+    app_root.mainloop()
+
 
 # works on small images fairly fast,,
 # be ready to NUKE! your system if you use a big picture, also helps to have a powerful GPU,
