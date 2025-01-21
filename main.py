@@ -14,11 +14,11 @@ model_path = os.path.join(os.path.dirname(__file__), 'RealESRGAN_x4plus.pth')
 
 state_dict=torch.load(model_path, map_location=torch.device("cpu"))["params_ema"]
 
-model=RRDBNet(num_in_ch=3, num_out_ch=3, num_feat=64, num_block=23, num_grow_ch=32, scale=10)
+model=RRDBNet(num_in_ch=3, num_out_ch=3, num_feat=64, num_block=23, num_grow_ch=32, scale=8)
 model.load_state_dict(state_dict, strict=True)
 
 upsampler=RealESRGANer(
-    scale=10,
+    scale=3,
     model_path=model_path,
     model=model,
     tile=0,
@@ -30,7 +30,7 @@ myImage=os.path.join(os.path.dirname(__file__), 'image.jpg')
 img = Image.open(myImage).convert("RGB")
 img = np.array(img)
 
-output, _ = upsampler.enhance(img, outscale=10)
+output, _ = upsampler.enhance(img, outscale=1)
 
 myOutput=os.path.join(os.path.dirname(__file__), 'output.png')
 output_img = Image.fromarray(output)
