@@ -59,9 +59,9 @@ class Upscaler:
             return
         
         try:
-            self.log_to_console(f"Model File Name: <{modelFileEntry}>")
-            self.log_to_console(f"Image File Name: <{imageFileEntry}>")
-            self.log_to_console(f"Upscale Factor: <{upscaleFactorEntry}>")
+            self.log_to_console(f"Note: Model File Name: <{modelFileEntry}>")
+            self.log_to_console(f"Note: Image File Name: <{imageFileEntry}>")
+            self.log_to_console(f"Note: Upscale Factor: <{upscaleFactorEntry}>")
             self.runUpscale
             self.log_to_console("Note: Model has started running.")
         except Exception as e:
