@@ -3,6 +3,7 @@ import os
 import customtkinter as ctk
 import torch
 import numpy as np
+import time
 from PIL import Image
 from basicsr.archs.rrdbnet_arch import RRDBNet
 from realesrgan import RealESRGANer
@@ -58,10 +59,13 @@ class Upscaler:
             self.log_to_console("Error: Please fill in all entry fields.")
             return
         
+        # time.sleep(1)
+        # self.log_to_console("Warning: T- 0s")
         try:
             self.log_to_console(f"Note: Model File Name: <{modelFileEntry}>")
             self.log_to_console(f"Note: Image File Name: <{imageFileEntry}>")
             self.log_to_console(f"Note: Upscale Factor: <{upscaleFactorEntry}>")
+            time.sleep(1)
             self.runUpscale()
             
         except Exception as e:
