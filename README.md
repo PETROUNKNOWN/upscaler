@@ -12,7 +12,7 @@ A Python application using a pretrained Real-ESRGAN model for General Image Rest
 ## Installation
 1. Clone the repository:
    ```bash
-   git clone https://github.com/PETROUNKNOWN/imageUpscaler.git
+   git clone https://github.com/PETROUNKNOWN/real-ESRGAN-imageUpscaler.git
 
 2. Install the required libraries:
     ```bash
